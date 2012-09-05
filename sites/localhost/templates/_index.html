@@ -3,5 +3,5 @@
 {% block title %}Index title{% end %}
 {% block body %}
 
-This is the index page with {% apply hello_word %} {{ str(pages[0]).upper() }} {% end %}
+This is the index page with {{ translit('русский текст', True) }}
 {% end %}

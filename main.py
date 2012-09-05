@@ -5,8 +5,9 @@ import cPickle
 import tornado.ioloop
 import tornado.template
 import tornado.web
-import trans
 
+import utils
+import macroses
 from config import Config
 from plugin import PluginManager
 from page import Page, PageCollection
@@ -18,6 +19,7 @@ class MainHandler(tornado.web.RequestHandler):
     def template_args(self):
         args = {'pages': self.routing, 'current_key': self.current_key}
         args.update(self.plugin_manager.get_plugins())
+        args.update(macroses.get_macroses())
         return args
 
     @property
@@ -25,6 +27,9 @@ class MainHandler(tornado.web.RequestHandler):
         if not hasattr(self.application, 'plugin_manager'):
             self.application.plugin_manager = PluginManager('plugins')
         return self.application.plugin_manager
+
+    def get_path(self, path):
+        return utils.get_path(self.request.host, path)
 
     # overriding parent method
     def get_template_path(self):
@@ -35,9 +40,6 @@ class MainHandler(tornado.web.RequestHandler):
 
     def render_from_string(self, tmpl, **kwargs):
         return tornado.template.Template(tmpl).generate(**kwargs)
-
-    def get_path(self, path):
-        return os.path.join(os.path.dirname(__file__), 'sites/%s/%s' % (self.request.host, path))
 
     def prepare(self):
 
@@ -72,7 +74,7 @@ class MainHandler(tornado.web.RequestHandler):
 
         for keyword in self.keys:
             args = self.template_args
-            args.update({'current_key': keyword, 'current_page': keyword.encode('trans/slug')})
+            args.update({'current_key': keyword, 'current_page': utils.translit(keyword)})
             page = Page(self.render_from_string(route_format, **args), keyword)
             self.routing.append(page)
 
@@ -84,10 +86,12 @@ class MainHandler(tornado.web.RequestHandler):
 
     def get(self, path):
 
-        print self.routing
-
         if os.path.isfile(self.get_path('templates/custom/%s' % path)):
             self.render('custom/%s' % path)
+            return
+
+        if not path:
+            self.render('_index.html')
             return
 
         if path not in self.routing:
