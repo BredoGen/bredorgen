@@ -2,5 +2,5 @@ from plugin import BasePlugin
 
 class HelloWorldPlugin(BasePlugin):
 
-    def run(self, text):
-        return text
+    def run(self, text, callback):
+        callback(text)
