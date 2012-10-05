@@ -15,8 +15,6 @@ from config import Config
 from plugin import PluginManager
 from page import Page, PageCollection
 
-
-
 class AsyncRequestHandler(tornado.web.RequestHandler):
 
     def create_template_loader(self, template_path):
